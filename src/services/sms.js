@@ -1,4 +1,4 @@
-const Vonage = require('@vonage/server-sdk');
+const { Vonage } = require('@vonage/server-sdk');
 
 const vonage = new Vonage({
   apiKey: process.env.VONAGE_API_KEY,
@@ -10,11 +10,11 @@ const otpStore = {};
 const sendOTP = async (phone) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore[phone] = { code, expiresAt: Date.now() + 10 * 60 * 1000 };
-  await new Promise((resolve, reject) => {
-    vonage.message.sendSms('May I', phone, `Your May I verification code is: ${code}`, (err, responseData) => {
-      if (err) reject(err);
-      else resolve(responseData);
-    });
+
+  await vonage.sms.send({
+    to: phone,
+    from: 'May I',
+    text: `Your May I verification code is: ${code}`,
   });
 };
 
