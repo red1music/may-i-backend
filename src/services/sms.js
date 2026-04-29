@@ -13,7 +13,7 @@ const sendOTP = async (phone) => {
 
   await vonage.sms.send({
     to: phone,
-    from: 'May I',
+    from:'15815301745',
     text: `Your May I verification code is: ${code}`,
   });
 };
