@@ -1,14 +1,15 @@
-const { query } = require('../db');
+const { supabase } = require('../db');
 
 const sendPushNotification = async (userId, { title, body, data = {} }) => {
   try {
-    const tokenResult = await query(
-      'SELECT token, platform FROM push_tokens WHERE user_id = $1',
-      [userId]
-    );
-    if (!tokenResult.rows.length) return;
+    const { data: tokens, error } = await supabase
+      .from('push_tokens')
+      .select('token, platform')
+      .eq('user_id', userId);
 
-    const messages = tokenResult.rows.map(({ token }) => ({
+    if (error || !tokens || tokens.length === 0) return;
+
+    const messages = tokens.map(({ token }) => ({
       to: token,
       sound: 'default',
       title,
@@ -18,7 +19,6 @@ const sendPushNotification = async (userId, { title, body, data = {} }) => {
 
     if (process.env.NODE_ENV === 'development') {
       console.log('Push notification:', { userId, title, body });
-      return;
     }
 
     const response = await fetch('https://exp.host/--/api/v2/push/send', {
