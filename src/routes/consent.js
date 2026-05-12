@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { authenticate } = require('../middleware/auth');
 const { supabase } = require('../db');
 const router = express.Router();
+const { sendPushNotification } = require('../services/push');
 
 router.use(authenticate);
 
@@ -13,6 +14,7 @@ router.post('/request', [body('recipient_phone').notEmpty(), body('categories').
   try {
     const { data: recipient } = await supabase.from('users').select('id').eq('phone', recipient_phone).single();
     if (!recipient) return res.status(404).json({ error: 'No May I user found with that number' });
+      sendPushNotification(recipient.id, 'New Consent Request', 'Someone is asking for your consent on May I.', {}).catch(() => {});
     const { data: request, error } = await supabase.from('consent_requests').insert({ requester_id: req.user.userId, recipient_id: recipient.id, category: categories.join(', ') }).select().single();
     if (error) throw error;
     res.status(201).json({ request_id: request.id, status: 'pending' });

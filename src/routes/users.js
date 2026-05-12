@@ -26,4 +26,16 @@ router.post('/set-name', async (req, res) => {
   }
 });
 
+
+router.post('/push-token', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+    await supabase.from('push_tokens').upsert({ user_id: req.user.userId, token, platform: 'android' }, { onConflict: 'user_id' });
+    res.json({ message: 'Push token saved' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save push token' });
+  }
+});
+
 module.exports = router;
