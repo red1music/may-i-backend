@@ -21,7 +21,7 @@ router.post('/verify-otp', async (req, res) => {
   try {
     const { phone, code } = req.body;
     if (!phone || !code) return res.status(400).json({ error: 'Phone and code required' });
-    const valid = verifyOTP(phone, code);
+    const valid = await verifyOTP(phone, code);
     if (!valid) return res.status(400).json({ error: 'Invalid or expired code' });
 
     let { data: user } = await supabase
