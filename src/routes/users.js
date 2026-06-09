@@ -27,4 +27,15 @@ router.post('/push-token', async (req, res) => {
   }
 });
 
+router.put("/me", async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: "Name required" });
+    await supabase.from("users").update({ name }).eq("id", req.user.userId);
+    res.json({ message: "Name updated" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update name" });
+  }
+});
+
 module.exports = router;
