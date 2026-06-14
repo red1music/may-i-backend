@@ -36,7 +36,7 @@ router.get('/pending', async (req, res) => {
 
 router.get('/mine', async (req, res) => {
   try {
-    const { data: requests } = await supabase.from('consent_requests').select('*, recipient:recipient_id(phone)').eq('requester_id', req.user.userId);
+    const { data: requests } = await supabase.from('consent_requests').select('*, recipient:recipient_id(phone, name)').eq('requester_id', req.user.userId);
     const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), recipient_phone: r.recipient?.phone, recipient_name: r.recipient?.name, status: r.status }));
     res.json({ requests: formatted });
   } catch (err) {
