@@ -26,8 +26,8 @@ router.post('/request', [body('recipient_phone').notEmpty(), body('categories').
 
 router.get('/pending', async (req, res) => {
   try {
-    const { data: requests } = await supabase.from('consent_requests').select('*, requester:requester_id(phone)').eq('recipient_id', req.user.userId).eq('status', 'pending');
-    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), initiator_phone: r.requester?.phone, status: r.status }));
+    const { data: requests } = await supabase.from('consent_requests').select('*, requester:requester_id(phone, name)').eq('recipient_id', req.user.userId).eq('status', 'pending');
+    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), initiator_phone: r.requester?.phone, initiator_name: r.requester?.name, status: r.status }));
     res.json({ requests: formatted });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch requests' });
@@ -37,7 +37,7 @@ router.get('/pending', async (req, res) => {
 router.get('/mine', async (req, res) => {
   try {
     const { data: requests } = await supabase.from('consent_requests').select('*, recipient:recipient_id(phone)').eq('requester_id', req.user.userId);
-    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), recipient_phone: r.recipient?.phone, status: r.status }));
+    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), recipient_phone: r.recipient?.phone, recipient_name: r.recipient?.name, status: r.status }));
     res.json({ requests: formatted });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch requests' });
@@ -76,7 +76,7 @@ router.get('/history', async (req, res) => {
   try {
     const { data: requests } = await supabase
       .from('consent_requests')
-      .select('*, recipient:recipient_id(phone), requester:requester_id(phone), records:consent_records(decision, decided_at)')
+      .select('*, recipient:recipient_id(phone, name), requester:requester_id(phone, name), records:consent_records(decision, decided_at)')
       .or('requester_id.eq.' + req.user.userId + ',recipient_id.eq.' + req.user.userId)
       .not('status', 'eq', 'pending');
     const formatted = (requests || []).map(r => ({
@@ -84,7 +84,7 @@ router.get('/history', async (req, res) => {
       action: r.status,
       category: r.category,
       created_at: r.records?.[0]?.decided_at || r.created_at,
-      other_phone: r.requester_id === req.user.userId ? r.recipient?.phone : r.requester?.phone,
+      other_phone: r.requester_id === req.user.userId ? r.recipient?.phone : r.requester?.phone, other_name: r.requester_id === req.user.userId ? r.recipient?.name : r.requester?.name,
     }));
     res.json({ records: formatted });
   } catch (err) {
