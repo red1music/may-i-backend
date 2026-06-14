@@ -85,6 +85,7 @@ router.get('/history', async (req, res) => {
       category: r.category,
       created_at: r.records?.[0]?.decided_at || r.created_at,
       other_phone: r.requester_id === req.user.userId ? r.recipient?.phone : r.requester?.phone, other_name: r.requester_id === req.user.userId ? r.recipient?.name : r.requester?.name,
+      direction: r.requester_id === req.user.userId ? 'sent' : 'received',
     }));
     res.json({ records: formatted });
   } catch (err) {
