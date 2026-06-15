@@ -10,12 +10,12 @@ router.use(authenticate);
 router.post('/request', [body('recipient_phone').notEmpty(), body('categories').isArray({ min: 1 }), body('expires_in_minutes').isInt({ min: 1 })], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-  const { recipient_phone, categories, expires_in_minutes } = req.body;
+  const { recipient_phone, categories, expires_in_minutes, note } = req.body;
   try {
     const { data: recipient } = await supabase.from('users').select('id').eq('phone', recipient_phone).single();
     if (!recipient) return res.status(404).json({ error: 'No May I user found with that number' });
       sendPushNotification(recipient.id, 'New Consent Request', 'Someone is asking for your consent on May I.', {}).catch(() => {});
-    const { data: request, error } = await supabase.from('consent_requests').insert({ requester_id: req.user.userId, recipient_id: recipient.id, category: categories.join(', ') }).select().single();
+    const { data: request, error } = await supabase.from('consent_requests').insert({ requester_id: req.user.userId, recipient_id: recipient.id, category: categories.join(', '), note: note || null }).select().single();
     if (error) throw error;
     res.status(201).json({ request_id: request.id, status: 'pending' });
   } catch (err) {
