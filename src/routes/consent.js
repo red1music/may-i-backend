@@ -78,7 +78,8 @@ router.get('/history', async (req, res) => {
       .from('consent_requests')
       .select('*, recipient:recipient_id(phone, name), requester:requester_id(phone, name), records:consent_records(decision, decided_at)')
       .or('requester_id.eq.' + req.user.userId + ',recipient_id.eq.' + req.user.userId)
-      .not('status', 'eq', 'pending');
+      .not('status', 'eq', 'pending')
+      .order('created_at', { ascending: false });
     const formatted = (requests || []).map(r => ({
       id: r.id,
       action: r.status,
