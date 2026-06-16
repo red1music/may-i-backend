@@ -35,4 +35,12 @@ const verifyOTP = async (phone, code) => {
   return true;
 };
 
-module.exports = { sendOTP, verifyOTP };
+const sendAppInvite = async (phone) => {
+  await vonage.sms.send({
+    to: phone,
+    from: '15815301745',
+    text: 'You have a consent request waiting for you on the May I app. Download it here: https://mayi.app',
+  });
+};
+
+module.exports = { sendOTP, verifyOTP, sendAppInvite };
