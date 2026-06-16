@@ -42,7 +42,7 @@ router.get('/pending', async (req, res) => {
 router.get('/mine', async (req, res) => {
   try {
     const { data: requests } = await supabase.from('consent_requests').select('*, recipient:recipient_id(phone, name)').eq('requester_id', req.user.userId);
-    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), recipient_phone: r.recipient?.phone, recipient_name: r.recipient?.name, status: r.status }));
+    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), recipient_phone: r.recipient?.phone, recipient_name: r.recipient?.name, status: r.status, note: r.note, expires_in_minutes: r.expires_in_minutes }));
     res.json({ requests: formatted });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch requests' });
