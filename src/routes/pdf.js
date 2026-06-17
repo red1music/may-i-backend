@@ -6,6 +6,10 @@ const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 router.get('/:id', async (req, res) => {
+  // Allow token via query param for browser-based PDF downloads
+  if (req.query.token && !req.headers.authorization) {
+    req.headers.authorization = `Bearer ${req.query.token}`;
+  }
   try {
     const userId = req.user.id;
     const { id } = req.params;
