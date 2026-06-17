@@ -16,9 +16,18 @@ router.get('/:id', async (req, res) => {
 
     const { data: record, error } = await supabase
       .from('consent_requests')
-      .select('*, requester:requester_id(name, phone), recipient:recipient_id(name, phone)')
+      .select('*')
       .eq('id', id)
       .single();
+
+    let requesterName = 'Unknown';
+    let recipientName = 'Unknown';
+    if (record) {
+      const { data: rUser } = await supabase.from('users').select('name, phone').eq('id', record.requester_id).single();
+      const { data: rcUser } = await supabase.from('users').select('name, phone').eq('id', record.recipient_id).single();
+      if (rUser) requesterName = rUser.name || rUser.phone;
+      if (rcUser) recipientName = rcUser.name || rcUser.phone;
+    }
 
     if (error || !record) return res.status(404).json({ error: 'Record not found' });
 
@@ -57,8 +66,8 @@ router.get('/:id', async (req, res) => {
     doc.fontSize(13).font('Helvetica-Bold').text('Parties');
     doc.moveDown(0.5);
     doc.fontSize(11).font('Helvetica');
-    doc.text(`Requester: ${record.requester?.name || 'Unknown'} (${record.requester?.phone || ''})`);
-    doc.text(`Recipient: ${record.recipient?.name || 'Unknown'} (${record.recipient?.phone || ''})`);
+    doc.text(`Requester: ${requesterName})`);
+    doc.text(`Recipient: ${recipientName})`);
     doc.moveDown(1.5);
 
     doc.fontSize(13).font('Helvetica-Bold').text('Legal Notice');
