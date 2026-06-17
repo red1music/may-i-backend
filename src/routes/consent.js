@@ -11,7 +11,7 @@ router.use(authenticate);
 router.post('/request', [body('recipient_phone').notEmpty(), body('categories').isArray({ min: 1 }), body('expires_in_minutes').isInt({ min: 1 })], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-  const { recipient_phone, categories, expires_in_minutes, note } = req.body;
+  const { recipient_phone, categories, expires_in_minutes, note, private_mode } = req.body;
   try {
     const { data: recipient } = await supabase.from('users').select('id').eq('phone', recipient_phone).single();
     if (!recipient) {
@@ -19,7 +19,7 @@ router.post('/request', [body('recipient_phone').notEmpty(), body('categories').
       return res.status(404).json({ error: "This person does not have May I yet. We sent them a link to download the app." });
     }
       sendPushNotification(recipient.id, 'New Consent Request', 'Someone is asking for your consent on May I.', {}).catch(() => {});
-    const { data: request, error } = await supabase.from('consent_requests').insert({ requester_id: req.user.userId, recipient_id: recipient.id, category: categories.join(', '), note: note || null }).select().single();
+    const { data: request, error } = await supabase.from('consent_requests').insert({ requester_id: req.user.userId, recipient_id: recipient.id, category: categories.join(', '), note: note || null, private_mode: private_mode || false }).select().single();
     if (error) throw error;
     res.status(201).json({ request_id: request.id, status: 'pending' });
   } catch (err) {
@@ -32,7 +32,7 @@ router.get('/pending', async (req, res) => {
   try {
     const { data: requests } = await supabase.from('consent_requests').select('*, requester:requester_id(phone, name)').eq('recipient_id', req.user.userId).eq('status', 'pending')
       .order('created_at', { ascending: false });
-    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), initiator_phone: r.requester?.phone, initiator_name: r.requester?.name, status: r.status, expires_in_minutes: r.expires_in_minutes, note: r.note }));
+    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), initiator_phone: r.requester?.phone, initiator_name: r.requester?.name, status: r.status, expires_in_minutes: r.expires_in_minutes, private_mode: r.private_mode, note: r.note, private_mode: r.private_mode }));
     res.json({ requests: formatted });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch requests' });
@@ -43,7 +43,7 @@ router.get('/mine', async (req, res) => {
   try {
     const { data: requests } = await supabase.from('consent_requests').select('*, recipient:recipient_id(phone, name)').eq('requester_id', req.user.userId)
       .order('created_at', { ascending: false });
-    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), recipient_phone: r.recipient?.phone, recipient_name: r.recipient?.name, status: r.status, note: r.note, expires_in_minutes: r.expires_in_minutes }));
+    const formatted = (requests || []).map(r => ({ id: r.id, categories: r.category.split(', '), recipient_phone: r.recipient?.phone, recipient_name: r.recipient?.name, status: r.status, note: r.note, expires_in_minutes: r.expires_in_minutes, private_mode: r.private_mode }));
     res.json({ requests: formatted });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch requests' });
@@ -93,7 +93,7 @@ router.get('/history', async (req, res) => {
       created_at: r.records?.[0]?.decided_at || r.created_at,
       other_phone: r.requester_id === req.user.userId ? r.recipient?.phone : r.requester?.phone, other_name: r.requester_id === req.user.userId ? r.recipient?.name : r.requester?.name,
       direction: r.requester_id === req.user.userId ? 'sent' : 'received',
-      expires_in_minutes: r.expires_in_minutes,
+      expires_in_minutes: r.expires_in_minutes, private_mode: r.private_mode,
     }));
     res.json({ records: formatted });
   } catch (err) {
