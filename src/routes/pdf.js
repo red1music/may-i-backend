@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const PDFDocument = require('pdfkit');
 const { createClient } = require('@supabase/supabase-js');
+const { authenticate } = require('../middleware/auth');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+router.use(authenticate);
 
 router.get('/:id', async (req, res) => {
   try {
