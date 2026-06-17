@@ -10,6 +10,7 @@ const userRoutes = require('./routes/users');
 const consentRoutes = require('./routes/consent');
 const recordRoutes = require('./routes/records');
 const privacyRoutes = require('./routes/privacy');
+const pdfRoutes = require('./routes/pdf');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/consent', consentRoutes);
 app.use('/api/records', recordRoutes);
 app.use('/api/privacy', privacyRoutes);
+app.use('/api/pdf', pdfRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
