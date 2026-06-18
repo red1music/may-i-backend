@@ -64,8 +64,7 @@ router.get('/:id', async (req, res) => {
     if (record.note) {
       doc.text('Note: ' + record.note);
     }
-    const categoriesText = Array.isArray(record.categories) ? record.categories.join(', ') : (record.categories || 'None');
-    doc.text('Categories: ' + categoriesText);
+    doc.text('Categories: ' + (record.categories || 'None'));
     if (record.note) doc.text('Note: ' + record.note);
     doc.text('Duration: ' + duration);
     doc.text('Created: ' + new Date(record.created_at).toLocaleString('en-US'));
