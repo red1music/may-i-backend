@@ -15,7 +15,7 @@ router.get('/:id', async (req, res) => {
 
     const { data: record, error } = await supabase
       .from('consent_requests')
-      .select('*')
+      .select('*, records:consent_records(decision, decided_at)')
       .eq('id', id)
       .single();
 
@@ -56,6 +56,14 @@ router.get('/:id', async (req, res) => {
     doc.fontSize(11).font('Helvetica');
     doc.text('Record ID: ' + record.id);
     doc.text('Status: ' + record.status);
+    const decisionRecord = record.records && record.records[0];
+    if (decisionRecord) {
+      doc.text('Decision: ' + decisionRecord.decision);
+      doc.text('Decision Time: ' + new Date(decisionRecord.decided_at).toLocaleString());
+    }
+    if (record.note) {
+      doc.text('Note: ' + record.note);
+    }
     const categoriesText = Array.isArray(record.categories) ? record.categories.join(', ') : (record.categories || 'None');
     doc.text('Categories: ' + categoriesText);
     if (record.note) doc.text('Note: ' + record.note);
