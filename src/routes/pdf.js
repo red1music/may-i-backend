@@ -64,7 +64,7 @@ router.get('/:id', async (req, res) => {
     if (record.note) {
       doc.text('Note: ' + record.note);
     }
-    doc.text('Categories: ' + (record.categories || 'None'));
+    doc.text('Categories: ' + (record.category || record.categories || 'None'));
     if (record.note) doc.text('Note: ' + record.note);
     doc.text('Duration: ' + duration);
     doc.text('Created: ' + new Date(record.created_at).toLocaleString('en-US'));
