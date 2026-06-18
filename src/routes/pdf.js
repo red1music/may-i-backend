@@ -10,7 +10,7 @@ router.use(authenticate);
 
 router.get('/:id', async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const { id } = req.params;
 
     const { data: record, error } = await supabase
