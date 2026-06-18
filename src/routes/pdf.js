@@ -56,7 +56,8 @@ router.get('/:id', async (req, res) => {
     doc.fontSize(11).font('Helvetica');
     doc.text('Record ID: ' + record.id);
     doc.text('Status: ' + record.status);
-    doc.text('Categories: ' + record.categories);
+    const categoriesText = Array.isArray(record.categories) ? record.categories.join(', ') : (record.categories || 'None');
+    doc.text('Categories: ' + categoriesText);
     if (record.note) doc.text('Note: ' + record.note);
     doc.text('Duration: ' + duration);
     doc.text('Created: ' + new Date(record.created_at).toLocaleString('en-US'));
