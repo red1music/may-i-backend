@@ -33,5 +33,8 @@ app.use('/api/pdf', pdfRoutes);
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
 
+const { startExpiryJob } = require('./services/expiry');
+startExpiryJob();
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
