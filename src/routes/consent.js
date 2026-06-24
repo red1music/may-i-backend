@@ -8,7 +8,7 @@ const { sendAppInvite } = require('../services/sms');
 
 router.use(authenticate);
 
-router.post('/request', [body('recipient_phone').notEmpty(), body('categories').isArray({ min: 1 }), body('expires_in_minutes').isInt({ min: 1 })], async (req, res) => {
+router.post('/request', [body('recipient_phone').notEmpty(), body('categories').isArray({ min: 1 }), body('expires_in_minutes').optional({ nullable: true }).isInt({ min: 1 })], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const { recipient_phone, categories, expires_in_minutes, note, private_mode } = req.body;
@@ -19,7 +19,7 @@ router.post('/request', [body('recipient_phone').notEmpty(), body('categories').
       return res.status(404).json({ error: "This person does not have May I yet. We sent them a link to download the app." });
     }
       sendPushNotification(recipient.id, 'New Consent Request', 'Someone is asking for your consent on May I.', {}).catch(() => {});
-    const { data: request, error } = await supabase.from('consent_requests').insert({ requester_id: req.user.userId, recipient_id: recipient.id, category: categories.join(', '), note: note || null, private_mode: private_mode || false }).select().single();
+    const { data: request, error } = await supabase.from('consent_requests').insert({ requester_id: req.user.userId, recipient_id: recipient.id, category: categories.join(', '), note: note || null, expires_in_minutes: expires_in_minutes || null, private_mode: private_mode || false }).select().single();
     if (error) throw error;
     res.status(201).json({ request_id: request.id, status: 'pending' });
   } catch (err) {
